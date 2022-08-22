@@ -1,15 +1,11 @@
-import { DeleteButton, Li } from './ContactList.Styled';
 import { useSelector } from 'react-redux';
-import Notiflix from 'notiflix';
-import {
-  useGetContactsQuery,
-  useRemoveContactsMutation,
-} from 'redux/contactsSlice';
+import { Li } from './ContactList.Styled';
+import { useGetContactsQuery } from 'redux/contactsSlice';
+import ContactItem from '../contactItem/ContactItem';
 
 const ContactList = () => {
   const value = useSelector(state => state.filter);
   const { data: contacts, error, isLoading } = useGetContactsQuery();
-  const [removeContacts] = useRemoveContactsMutation();
 
   const getVisibleContacts = () => {
     const notmalisedFilter = value.toLowerCase();
@@ -18,16 +14,7 @@ const ContactList = () => {
     );
     return visibleContacts;
   };
-
-  const onDeleteContact = async id => {
-    try {
-      await removeContacts(id);
-      Notiflix.Notify.success('Сontact removed from list');
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
+  //console.log(getVisibleContacts());
   return (
     <>
       {error ? <p>Something went wrong</p> : null}
@@ -35,12 +22,9 @@ const ContactList = () => {
         <b>Loadind...</b>
       ) : (
         <ul>
-          {getVisibleContacts().map(({ id, name, phone }) => (
-            <Li key={id}>
-              {name}: {phone}
-              <DeleteButton type="button" onClick={() => onDeleteContact(id)}>
-                Delete
-              </DeleteButton>
+          {getVisibleContacts().map(contact => (
+            <Li key={contact.id}>
+              <ContactItem contact={contact} />
             </Li>
           ))}
         </ul>
