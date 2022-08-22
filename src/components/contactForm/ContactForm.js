@@ -7,24 +7,19 @@ import {
   ButtonSubmit,
   TitleInput,
 } from './ContactForm.Styled';
-import { useSelector, useDispatch } from 'react-redux';
-import { getContacts, addContacts } from 'redux/contacts/contactsOperations';
-import { useEffect } from 'react';
-import { selectContacts } from 'redux/contacts/contactsSelector';
+import {
+  useGetContactsQuery,
+  useAddContactsMutation,
+} from 'redux/contactsSlice';
 
 const nameId = shortid();
 const phoneId = shortid();
 
 const ContactForm = () => {
-  const dispatch = useDispatch();
+  const { data: contacts } = useGetContactsQuery();
+  const [addContact] = useAddContactsMutation();
 
-  useEffect(() => {
-    dispatch(getContacts());
-  }, [dispatch]);
-
-  const contacts = useSelector(selectContacts);
-
-  const addContact = (values, id) => {
+  const handleContact = (values, id) => {
     const newContact = { id, ...values };
     const found = contacts.some(function (contact) {
       return contact.name.toLowerCase() === values.name.toLowerCase();
@@ -34,7 +29,7 @@ const ContactForm = () => {
       values.phone = '';
     };
     if (!found) {
-      dispatch(addContacts(newContact));
+      addContact(newContact);
       resetForm();
       Notiflix.Notify.success('Сontact added successfully');
     } else {
@@ -43,7 +38,7 @@ const ContactForm = () => {
   };
 
   const handleSubmit = async (value, { setSubmitting }) => {
-    await addContact(value, shortid.generate());
+    await handleContact(value, shortid.generate());
     setSubmitting(false);
   };
   return (

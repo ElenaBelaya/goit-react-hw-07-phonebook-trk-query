@@ -1,39 +1,51 @@
 import { DeleteButton, Li } from './ContactList.Styled';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Notiflix from 'notiflix';
-import { selectContacts, selectFilter } from 'redux/contacts/contactsSelector';
-import { removeContacts } from 'redux/contacts/contactsOperations';
+import {
+  useGetContactsQuery,
+  useRemoveContactsMutation,
+} from 'redux/contactsSlice';
 
 const ContactList = () => {
-  const value = useSelector(selectFilter);
-  const contacts = useSelector(selectContacts);
-  const dispartch = useDispatch();
+  const value = useSelector(state => state.filter);
+  const { data: contacts, error, isLoading } = useGetContactsQuery();
+  const [removeContacts] = useRemoveContactsMutation();
 
   const getVisibleContacts = () => {
     const notmalisedFilter = value.toLowerCase();
     const visibleContacts = contacts.filter(contact =>
       contact.name.toLowerCase().includes(notmalisedFilter)
     );
-
     return visibleContacts;
   };
 
-  const onDeleteContact = id => {
-    dispartch(removeContacts(id));
-    Notiflix.Notify.success('Сontact removed from list');
+  const onDeleteContact = async id => {
+    try {
+      await removeContacts(id);
+      Notiflix.Notify.success('Сontact removed from list');
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   return (
-    <ul>
-      {getVisibleContacts().map(({ id, name, phone }) => (
-        <Li key={id}>
-          {name}: {phone}
-          <DeleteButton type="button" onClick={() => onDeleteContact(id)}>
-            Delete
-          </DeleteButton>
-        </Li>
-      ))}
-    </ul>
+    <>
+      {error ? <p>Something went wrong</p> : null}
+      {isLoading ? (
+        <b>Loadind...</b>
+      ) : (
+        <ul>
+          {getVisibleContacts().map(({ id, name, phone }) => (
+            <Li key={id}>
+              {name}: {phone}
+              <DeleteButton type="button" onClick={() => onDeleteContact(id)}>
+                Delete
+              </DeleteButton>
+            </Li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 };
 
